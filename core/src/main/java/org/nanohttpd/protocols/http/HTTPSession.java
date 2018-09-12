@@ -8,18 +8,18 @@ package org.nanohttpd.protocols.http;
  * %%
  * Redistribution and use in source and binary forms, with or without modification,
  * are permitted provided that the following conditions are met:
- * 
+ *
  * 1. Redistributions of source code must retain the above copyright notice, this
  *    list of conditions and the following disclaimer.
- * 
+ *
  * 2. Redistributions in binary form must reproduce the above copyright notice,
  *    this list of conditions and the following disclaimer in the documentation
  *    and/or other materials provided with the distribution.
- * 
+ *
  * 3. Neither the name of the nanohttpd nor the names of its contributors
  *    may be used to endorse or promote products derived from this software without
  *    specific prior written permission.
- * 
+ *
  * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND
  * ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
  * WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE DISCLAIMED.
@@ -33,35 +33,6 @@ package org.nanohttpd.protocols.http;
  * #L%
  */
 
-import java.io.BufferedInputStream;
-import java.io.BufferedReader;
-import java.io.ByteArrayInputStream;
-import java.io.ByteArrayOutputStream;
-import java.io.DataOutput;
-import java.io.DataOutputStream;
-import java.io.FileOutputStream;
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.InputStreamReader;
-import java.io.OutputStream;
-import java.io.RandomAccessFile;
-import java.net.InetAddress;
-import java.net.SocketException;
-import java.net.SocketTimeoutException;
-import java.nio.ByteBuffer;
-import java.nio.channels.FileChannel;
-import java.nio.charset.Charset;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Locale;
-import java.util.Map;
-import java.util.StringTokenizer;
-import java.util.logging.Level;
-import java.util.regex.Matcher;
-
-import javax.net.ssl.SSLException;
-
 import org.nanohttpd.protocols.http.NanoHTTPD.ResponseException;
 import org.nanohttpd.protocols.http.content.ContentType;
 import org.nanohttpd.protocols.http.content.CookieHandler;
@@ -71,8 +42,20 @@ import org.nanohttpd.protocols.http.response.Status;
 import org.nanohttpd.protocols.http.tempfiles.ITempFile;
 import org.nanohttpd.protocols.http.tempfiles.ITempFileManager;
 
+import javax.net.ssl.SSLException;
+import java.io.*;
+import java.net.InetAddress;
+import java.net.SocketException;
+import java.net.SocketTimeoutException;
+import java.nio.ByteBuffer;
+import java.nio.channels.FileChannel;
+import java.nio.charset.Charset;
+import java.util.*;
+import java.util.logging.Level;
+import java.util.regex.Matcher;
+
 public class HTTPSession implements IHTTPSession {
-    
+
     public static final String POST_DATA = "postData";
 
     private static final int REQUEST_BUFFER_LEN = 512;
@@ -125,9 +108,9 @@ public class HTTPSession implements IHTTPSession {
         this.tempFileManager = tempFileManager;
         this.inputStream = new BufferedInputStream(inputStream, HTTPSession.BUFSIZE);
         this.outputStream = outputStream;
-        this.remoteIp = inetAddress.isLoopbackAddress() || inetAddress.isAnyLocalAddress() ? "127.0.0.1" : inetAddress.getHostAddress().toString();
-        this.remoteHostname = inetAddress.isLoopbackAddress() || inetAddress.isAnyLocalAddress() ? "localhost" : inetAddress.getHostName().toString();
-        this.headers = new HashMap<String, String>();
+        this.remoteIp = inetAddress.isLoopbackAddress() || inetAddress.isAnyLocalAddress() ? "127.0.0.1" : inetAddress.getHostAddress();
+        this.remoteHostname = inetAddress.isLoopbackAddress() || inetAddress.isAnyLocalAddress() ? "localhost" : inetAddress.getHostName();
+        this.headers = new HashMap<>();
     }
 
     /**
@@ -263,16 +246,16 @@ public class HTTPSession implements IHTTPSession {
 
                 List<String> values = parms.get(partName);
                 if (values == null) {
-                    values = new ArrayList<String>();
+                    values = new ArrayList<>();
                     parms.put(partName, values);
                 }
 
                 if (partContentType == null) {
                     // Read the part into a string
-                    byte[] data_bytes = new byte[partDataEnd - partDataStart];
-                    fbuf.get(data_bytes);
+                    byte[] dataBytes = new byte[partDataEnd - partDataStart];
+                    fbuf.get(dataBytes);
 
-                    values.add(new String(data_bytes, contentType.getEncoding()));
+                    values.add(new String(dataBytes, contentType.getEncoding()));
                 } else {
                     // Read it into a file
                     String path = saveTmpFile(fbuf, partDataStart, partDataEnd - partDataStart, fileName);
@@ -330,7 +313,7 @@ public class HTTPSession implements IHTTPSession {
 
             List<String> values = p.get(key);
             if (values == null) {
-                values = new ArrayList<String>();
+                values = new ArrayList<>();
                 p.put(key, values);
             }
 
@@ -340,7 +323,7 @@ public class HTTPSession implements IHTTPSession {
 
     @Override
     public void execute() throws IOException {
-        Response r = null;
+        Response response = null;
         try {
             // Read the first 8192 bytes.
             // The full header should fit in here.
@@ -382,9 +365,9 @@ public class HTTPSession implements IHTTPSession {
                 this.inputStream.skip(this.splitbyte);
             }
 
-            this.parms = new HashMap<String, List<String>>();
+            this.parms = new HashMap<>();
             if (null == this.headers) {
-                this.headers = new HashMap<String, String>();
+                this.headers = new HashMap<>();
             } else {
                 this.headers.clear();
             }
@@ -393,7 +376,7 @@ public class HTTPSession implements IHTTPSession {
             BufferedReader hin = new BufferedReader(new InputStreamReader(new ByteArrayInputStream(buf, 0, this.rlen)));
 
             // Decode the header into parms and header java properties
-            Map<String, String> pre = new HashMap<String, String>();
+            Map<String, String> pre = new HashMap<>();
             decodeHeader(hin, pre, this.parms, this.headers);
 
             if (null != this.remoteIp) {
@@ -418,23 +401,23 @@ public class HTTPSession implements IHTTPSession {
             // TODO: long body_size = getBodySize();
             // TODO: long pos_before_serve = this.inputStream.totalRead()
             // (requires implementation for totalRead())
-            r = httpd.handle(this);
+            response = httpd.handle(this);
             // TODO: this.inputStream.skip(body_size -
             // (this.inputStream.totalRead() - pos_before_serve))
 
-            if (r == null) {
+            if (response == null) {
                 throw new ResponseException(Status.INTERNAL_ERROR, "SERVER INTERNAL ERROR: Serve() returned a null response.");
             } else {
                 String acceptEncoding = this.headers.get("accept-encoding");
-                this.cookies.unloadQueue(r);
-                r.setRequestMethod(this.method);
+                this.cookies.unloadQueue(response);
+                response.setRequestMethod(this.method);
                 if (acceptEncoding == null || !acceptEncoding.contains("gzip")) {
-                    r.setUseGzip(false);
+                    response.setUseGzip(false);
                 }
-                r.setKeepAlive(keepAlive);
-                r.send(this.outputStream);
+                response.setKeepAlive(keepAlive);
+                response.send(this.outputStream);
             }
-            if (!keepAlive || r.isCloseConnection()) {
+            if (!keepAlive || response.isCloseConnection()) {
                 throw new SocketException("NanoHttpd Shutdown");
             }
         } catch (SocketException e) {
@@ -458,7 +441,7 @@ public class HTTPSession implements IHTTPSession {
             resp.send(this.outputStream);
             NanoHTTPD.safeClose(this.outputStream);
         } finally {
-            NanoHTTPD.safeClose(r);
+            NanoHTTPD.safeClose(response);
             this.tempFileManager.clear();
         }
     }
@@ -557,11 +540,8 @@ public class HTTPSession implements IHTTPSession {
     @Override
     @Deprecated
     public final Map<String, String> getParms() {
-        Map<String, String> result = new HashMap<String, String>();
-        for (String key : this.parms.keySet()) {
-            result.put(key, this.parms.get(key).get(0));
-        }
-
+        Map<String, String> result = new HashMap<>();
+        this.parms.keySet().forEach(p-> result.put(p,this.parms.get(p).get(0)));
         return result;
     }
 
@@ -673,12 +653,12 @@ public class HTTPSession implements IHTTPSession {
      * Retrieves the content of a sent file and saves it to a temporary file.
      * The full path to the saved file is returned.
      */
-    private String saveTmpFile(ByteBuffer b, int offset, int len, String filename_hint) {
+    private String saveTmpFile(ByteBuffer b, int offset, int len, String filenameHint) {
         String path = "";
         if (len > 0) {
             FileOutputStream fileOutputStream = null;
             try {
-                ITempFile tempFile = this.tempFileManager.createTempFile(filename_hint);
+                ITempFile tempFile = this.tempFileManager.createTempFile(filenameHint);
                 ByteBuffer src = b.duplicate();
                 fileOutputStream = new FileOutputStream(tempFile.getName());
                 FileChannel dest = fileOutputStream.getChannel();

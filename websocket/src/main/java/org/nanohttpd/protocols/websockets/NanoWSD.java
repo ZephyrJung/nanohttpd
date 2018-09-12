@@ -8,18 +8,18 @@ package org.nanohttpd.protocols.websockets;
  * %%
  * Redistribution and use in source and binary forms, with or without modification,
  * are permitted provided that the following conditions are met:
- * 
+ *
  * 1. Redistributions of source code must retain the above copyright notice, this
  *    list of conditions and the following disclaimer.
- * 
+ *
  * 2. Redistributions in binary form must reproduce the above copyright notice,
  *    this list of conditions and the following disclaimer in the documentation
  *    and/or other materials provided with the distribution.
- * 
+ *
  * 3. Neither the name of the nanohttpd nor the names of its contributors
  *    may be used to endorse or promote products derived from this software without
  *    specific prior written permission.
- * 
+ *
  * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND
  * ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
  * WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE DISCLAIMED.
@@ -33,16 +33,16 @@ package org.nanohttpd.protocols.websockets;
  * #L%
  */
 
-import java.security.MessageDigest;
-import java.security.NoSuchAlgorithmException;
-import java.util.Map;
-import java.util.logging.Logger;
-
 import org.nanohttpd.protocols.http.IHTTPSession;
 import org.nanohttpd.protocols.http.NanoHTTPD;
 import org.nanohttpd.protocols.http.response.Response;
 import org.nanohttpd.protocols.http.response.Status;
 import org.nanohttpd.util.IHandler;
+
+import java.security.MessageDigest;
+import java.security.NoSuchAlgorithmException;
+import java.util.Map;
+import java.util.logging.Logger;
 
 public abstract class NanoWSD extends NanoHTTPD {
 
@@ -80,9 +80,8 @@ public abstract class NanoWSD extends NanoHTTPD {
      * hast java.util.Base64, I have this from stackoverflow:
      * http://stackoverflow.com/a/4265472
      * </p>
-     * 
-     * @param buf
-     *            the byte array (not null)
+     *
+     * @param buf the byte array (not null)
      * @return the translated Base64 string (not null)
      */
     private static String encodeBase64(byte[] buf) {
@@ -101,11 +100,8 @@ public abstract class NanoWSD extends NanoHTTPD {
             ar[a++] = NanoWSD.ALPHABET[(b1 << 2 | (b2 & 0xFF) >> 6) & mask];
             ar[a++] = NanoWSD.ALPHABET[b2 & mask];
         }
-        switch (size % 3) {
-            case 1:
-                ar[--a] = '=';
-            case 2:
-                ar[--a] = '=';
+        if (size % 3 != 0) {
+            ar[--a] = '=';
         }
         return new String(ar);
     }

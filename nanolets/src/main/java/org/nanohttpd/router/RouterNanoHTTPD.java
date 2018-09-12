@@ -70,15 +70,15 @@ public class RouterNanoHTTPD extends NanoHTTPD {
 
     public interface UriResponder {
 
-        public Response get(UriResource uriResource, Map<String, String> urlParams, IHTTPSession session);
+        Response get(UriResource uriResource, Map<String, String> urlParams, IHTTPSession session);
 
-        public Response put(UriResource uriResource, Map<String, String> urlParams, IHTTPSession session);
+        Response put(UriResource uriResource, Map<String, String> urlParams, IHTTPSession session);
 
-        public Response post(UriResource uriResource, Map<String, String> urlParams, IHTTPSession session);
+        Response post(UriResource uriResource, Map<String, String> urlParams, IHTTPSession session);
 
-        public Response delete(UriResource uriResource, Map<String, String> urlParams, IHTTPSession session);
+        Response delete(UriResource uriResource, Map<String, String> urlParams, IHTTPSession session);
 
-        public Response other(String method, UriResource uriResource, Map<String, String> urlParams, IHTTPSession session);
+        Response other(String method, UriResource uriResource, Map<String, String> urlParams, IHTTPSession session);
     }
 
     /**
