@@ -53,26 +53,28 @@ public class Cookie {
         return dateFormat.format(calendar.getTime());
     }
 
-    private final String n, v, e;
+    private final String name;
+    private final String value;
+    private final String expires;
 
     public Cookie(String name, String value) {
         this(name, value, 30);
     }
 
     public Cookie(String name, String value, int numDays) {
-        this.n = name;
-        this.v = value;
-        this.e = getHTTPTime(numDays);
+        this.name = name;
+        this.value = value;
+        this.expires = getHTTPTime(numDays);
     }
 
     public Cookie(String name, String value, String expires) {
-        this.n = name;
-        this.v = value;
-        this.e = expires;
+        this.name = name;
+        this.value = value;
+        this.expires = expires;
     }
 
     public String getHTTPHeader() {
         String fmt = "%s=%s; expires=%s";
-        return String.format(fmt, this.n, this.v, this.e);
+        return String.format(fmt, this.name, this.value, this.expires);
     }
 }
